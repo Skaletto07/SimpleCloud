@@ -1,4 +1,4 @@
-package com.kostkin;
+package kostkin;
 
 import java.io.IOException;
 import java.net.ServerSocket;
