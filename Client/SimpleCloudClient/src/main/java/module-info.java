@@ -3,6 +3,6 @@ module com.kostkin.simplecloudclient {
     requires javafx.fxml;
 
 
-    opens com.kostkin.simpleCloudClient to javafx.fxml;
-    exports com.kostkin.simpleCloudClient;
+    opens kostkin.kostkin.simpleCloudClient to javafx.fxml;
+    exports kostkin.kostkin.simpleCloudClient;
 }

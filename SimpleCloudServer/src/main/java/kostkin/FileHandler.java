@@ -8,6 +8,7 @@ public class FileHandler implements Runnable {
     private static final String SERVER_DIR = "server_files";
 
     private static final String SEND_FILE_COMMAND = "file";
+    private static final String RECEIVE_FILE_COMMAND = "file_request";
 
     private static final Integer BATCH_SIZE = 256;
 
@@ -18,6 +19,7 @@ public class FileHandler implements Runnable {
     private final DataInputStream dis;
 
     private byte[] batch;
+
 
     public FileHandler(Socket socket) throws IOException {
         this.socket = socket;
@@ -46,6 +48,16 @@ public class FileHandler implements Runnable {
                             fos.write(batch, 0, read);
                         }
                     } catch (Exception ignored) {}
+                } else if (command.equals(RECEIVE_FILE_COMMAND)) {
+                    String fileNameToClient = dis.readUTF();
+                    long size = dis.readLong();
+                    try(FileOutputStream fos = new FileOutputStream(System.getProperty("user.home") + "/" + fileNameToClient)) {
+                        for (int i = 0; i < (size + BATCH_SIZE - 1) / BATCH_SIZE; i++) {
+                            int read = dis.read(batch);
+                            fos.write(batch, 0, read);
+                        }
+                    } catch (Exception ignored) {}
+                    //TODO
                 } else {
                     System.out.println("Unknown command received: " + command);
                 }

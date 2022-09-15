@@ -1,4 +1,4 @@
-package com.kostkin.simpleCloudClient;
+package kostkin.kostkin.simpleCloudClient;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
@@ -18,6 +18,8 @@ public class CloudMainController implements Initializable {
 
     private String currentDirectory;
 
+    private String currentDirectoryServer = "C:\\SpringLearning\\SimpleCloud\\server_files";
+
     private DataInputStream dis;
 
     private DataOutputStream dos;
@@ -25,6 +27,12 @@ public class CloudMainController implements Initializable {
     private Socket socket;
 
     private static final String SEND_FILE_COMMAND = "file";
+
+    private static final String RECEIVE_FILE_COMMAND = "file_request";
+
+    private static final String SERVER = "server";
+
+    private static final String CLIENT = "client";
 
     private void initNetwork() {
         try {
@@ -55,14 +63,16 @@ public class CloudMainController implements Initializable {
                 System.err.println("e=" + e.getMessage());
             }
         }
-
+        refresh(SERVER);
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initNetwork();
         setCurrentDirectory(System.getProperty("user.home"));
+        setCurrentDirectoryServer(currentDirectoryServer);
         fillView(clientView, getFiles(currentDirectory));
+        fillView(serverView, getFiles(currentDirectoryServer));
         clientView.setOnMouseClicked(mouseEvent -> {
             if (mouseEvent.getClickCount() == 2) {
                 String selected = clientView.getSelectionModel().getSelectedItem();
@@ -72,11 +82,26 @@ public class CloudMainController implements Initializable {
                 }
             }
         });
+        serverView.setOnMouseClicked(mouseEvent -> {
+            if (mouseEvent.getClickCount() == 2) {
+                String selected = serverView.getSelectionModel().getSelectedItem();
+                File selectedFile = new File(currentDirectoryServer + "/" + selected);
+                if (selectedFile.isDirectory()) {
+                    setCurrentDirectoryServer(selectedFile.getAbsolutePath());
+                }
+            }
+        });
     }
 
     private void setCurrentDirectory(String directory) {
         currentDirectory = directory;
         fillView(clientView, getFiles(currentDirectory));
+
+    }
+
+    private void setCurrentDirectoryServer(String directory) {
+        currentDirectoryServer = directory;
+        fillView(serverView, getFiles(currentDirectoryServer));
 
     }
 
@@ -98,4 +123,32 @@ public class CloudMainController implements Initializable {
         return List.of();
     }
 
+    public void sendToClient(ActionEvent actionEvent) {
+        String fileName = serverView.getSelectionModel().getSelectedItem();
+        String filePath = currentDirectoryServer + "/" + fileName;
+        File file = new File(filePath);
+        if (file.isFile()) {
+            try {
+                dos.writeUTF(RECEIVE_FILE_COMMAND);
+                dos.writeUTF(fileName);
+                dos.writeLong(file.length());
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    byte[] bytes = fis.readAllBytes();
+                    dos.write(bytes);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } catch (Exception e) {
+                System.err.println("e=" + e.getMessage());
+            }
+        }
+        refresh(CLIENT);
+    }
+
+    public void refresh(String forRefresh) {
+        if (forRefresh.equals(SERVER)) {
+        setCurrentDirectoryServer(currentDirectoryServer);
+        } else if (forRefresh.equals(CLIENT))
+            setCurrentDirectory(System.getProperty("user.home"));
+    }
 }
