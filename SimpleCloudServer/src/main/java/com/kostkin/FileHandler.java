@@ -1,4 +1,4 @@
-package kostkin;
+package com.kostkin;
 
 import java.io.*;
 import java.net.Socket;
@@ -57,7 +57,6 @@ public class FileHandler implements Runnable {
                             fos.write(batch, 0, read);
                         }
                     } catch (Exception ignored) {}
-                    //TODO
                 } else {
                     System.out.println("Unknown command received: " + command);
                 }

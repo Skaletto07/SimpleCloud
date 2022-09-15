@@ -6,7 +6,7 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="650.0"
             prefWidth="1070.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="kostkin.kostkin.simpleCloudClient.CloudMainController">
+            fx:controller="com.kostkin.simpleCloudClient.CloudMainController">
    <children>
       <ListView fx:id="clientView" layoutX="23.0" layoutY="44.0" prefHeight="560.0" prefWidth="450.0" />
       <ListView fx:id="serverView" layoutX="591.0" layoutY="44.0" prefHeight="560.0" prefWidth="450.0" />

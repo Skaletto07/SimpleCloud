@@ -1,4 +1,4 @@
-package kostkin.kostkin.simpleCloudClient;
+package com.kostkin.simpleCloudClient;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;

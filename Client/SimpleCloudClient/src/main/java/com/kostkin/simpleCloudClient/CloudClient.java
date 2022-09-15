@@ -1,4 +1,4 @@
-package kostkin.kostkin.simpleCloudClient;
+package com.kostkin.simpleCloudClient;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
