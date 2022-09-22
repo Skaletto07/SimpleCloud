@@ -2,13 +2,18 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="SimpleCloudServer" />
-        <module name="SimpleCloudClient" />
+        <module name="common" />
+        <module name="CloudClient" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="SimpleCloudClient" target="18" />
+    </bytecodeTargetLevel>
   </component>
 </project>

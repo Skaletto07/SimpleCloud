@@ -10,7 +10,8 @@ import java.io.IOException;
 public class CloudClient extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("simpleCloudClient.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/simpleCloudClient.fxml"));
+        System.out.println("getClass().getResource(\"simpleCloudClient.fxml\") = " + getClass().getResource("/simpleCloudClient.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1070, 650);
         stage.setTitle("Cloud!");
         stage.setScene(scene);

@@ -11,8 +11,6 @@
       <ListView fx:id="clientView" layoutX="23.0" layoutY="44.0" prefHeight="560.0" prefWidth="450.0" />
       <ListView fx:id="serverView" layoutX="591.0" layoutY="44.0" prefHeight="560.0" prefWidth="450.0" />
       <Button onAction="#sendToServer" layoutX="506.0" layoutY="85.0" mnemonicParsing="false" prefHeight="24.0" prefWidth="61.0" text="&gt;" />
-      <Button layoutX="506.0" layoutY="129.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="61.0" text="&lt;" />
-      <Label layoutX="226.0" layoutY="14.0" prefHeight="25.0" prefWidth="44.0" text="Server" />
-      <Label layoutX="802.0" layoutY="18.0" text="Client" />
+      <Button onAction="#downloadFile" layoutX="506.0" layoutY="129.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="61.0" text="&lt;" />
    </children>
 </AnchorPane>
