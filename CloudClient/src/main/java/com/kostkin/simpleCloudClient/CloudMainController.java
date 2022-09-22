@@ -1,5 +1,7 @@
 package com.kostkin.simpleCloudClient;
 
+import com.kostkin.DaemonThreadFactory;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
@@ -12,13 +14,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 
+
+
+import static com.kostkin.Command.*;
+import static com.kostkin.FileUtils.readFileFromStream;
+
 public class CloudMainController implements Initializable {
     public ListView<String> clientView  ;
     public ListView<String> serverView;
 
     private String currentDirectory;
-
-    private String currentDirectoryServer = "C:\\SpringLearning\\SimpleCloud\\server_files";
 
     private DataInputStream dis;
 
@@ -26,19 +31,23 @@ public class CloudMainController implements Initializable {
 
     private Socket socket;
 
-    private static final String SEND_FILE_COMMAND = "file";
+    private boolean needReadMessages = true;
 
-    private static final String RECEIVE_FILE_COMMAND = "file_request";
+    private DaemonThreadFactory factory;
 
-    private static final String SERVER = "server";
-
-    private static final String CLIENT = "client";
+    public void downloadFile(ActionEvent actionEvent) throws IOException {
+        String fileName = serverView.getSelectionModel().getSelectedItem();
+        dos.writeUTF(GET_FILE_COMMAND.getSimpleName());
+        dos.writeUTF(fileName);
+        dos.flush();
+    }
 
     private void initNetwork() {
         try {
             socket = new Socket("localhost", 8189);
             dis = new DataInputStream(socket.getInputStream());
             dos = new DataOutputStream(socket.getOutputStream());
+            factory.getThread(this::readMessages, "cloud-client-read-thread-%").start();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -50,7 +59,8 @@ public class CloudMainController implements Initializable {
         File file = new File(filePath);
         if (file.isFile()) {
             try {
-                dos.writeUTF(SEND_FILE_COMMAND);
+                System.out.println("File: " + fileName + " sent to server");
+                dos.writeUTF(SEND_FILE_COMMAND.getSimpleName());
                 dos.writeUTF(fileName);
                 dos.writeLong(file.length());
                 try (FileInputStream fis = new FileInputStream(file)) {
@@ -60,34 +70,47 @@ public class CloudMainController implements Initializable {
                     throw new RuntimeException(e);
                 }
             } catch (Exception e) {
-                System.err.println("e=" + e.getMessage());
+                System.err.println("e = " + e.getMessage());
             }
         }
-        refresh(SERVER);
+    }
+
+    private void readMessages() {
+        try {
+            while (needReadMessages) {
+                String command = dis.readUTF();
+                if (SEND_FILE_COMMAND.getSimpleName().equals(command)) {
+                    readFileFromStream(dis, currentDirectory);
+                    Platform.runLater(() -> fillView(clientView, getFiles(currentDirectory)));
+                } else if (GET_FILES_LIST_COMMAND.getSimpleName().equals(command)) {
+                    System.out.println("Received command: " + GET_FILES_LIST_COMMAND.getSimpleName());
+                    List<String> files = new ArrayList<>();
+                    int size = dis.readInt();
+                    for (int i = 0; i < size; i++) {
+                        String file = dis.readUTF();
+                        files.add(file);
+                    }
+                    Platform.runLater(() -> fillView(serverView, files));
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Server off");
+        }
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        needReadMessages = true;
+        factory = new DaemonThreadFactory();
         initNetwork();
         setCurrentDirectory(System.getProperty("user.home"));
-        setCurrentDirectoryServer(currentDirectoryServer);
         fillView(clientView, getFiles(currentDirectory));
-        fillView(serverView, getFiles(currentDirectoryServer));
         clientView.setOnMouseClicked(mouseEvent -> {
             if (mouseEvent.getClickCount() == 2) {
                 String selected = clientView.getSelectionModel().getSelectedItem();
                 File selectedFile = new File(currentDirectory + "/" + selected);
                 if (selectedFile.isDirectory()) {
-                    setCurrentDirectory(selectedFile.getAbsolutePath());
-                }
-            }
-        });
-        serverView.setOnMouseClicked(mouseEvent -> {
-            if (mouseEvent.getClickCount() == 2) {
-                String selected = serverView.getSelectionModel().getSelectedItem();
-                File selectedFile = new File(currentDirectoryServer + "/" + selected);
-                if (selectedFile.isDirectory()) {
-                    setCurrentDirectoryServer(selectedFile.getAbsolutePath());
+                    setCurrentDirectory(currentDirectory + "/" + selected);
                 }
             }
         });
@@ -96,12 +119,6 @@ public class CloudMainController implements Initializable {
     private void setCurrentDirectory(String directory) {
         currentDirectory = directory;
         fillView(clientView, getFiles(currentDirectory));
-
-    }
-
-    private void setCurrentDirectoryServer(String directory) {
-        currentDirectoryServer = directory;
-        fillView(serverView, getFiles(currentDirectoryServer));
 
     }
 
@@ -123,32 +140,6 @@ public class CloudMainController implements Initializable {
         return List.of();
     }
 
-    public void sendToClient(ActionEvent actionEvent) {
-        String fileName = serverView.getSelectionModel().getSelectedItem();
-        String filePath = currentDirectoryServer + "/" + fileName;
-        File file = new File(filePath);
-        if (file.isFile()) {
-            try {
-                dos.writeUTF(RECEIVE_FILE_COMMAND);
-                dos.writeUTF(fileName);
-                dos.writeLong(file.length());
-                try (FileInputStream fis = new FileInputStream(file)) {
-                    byte[] bytes = fis.readAllBytes();
-                    dos.write(bytes);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            } catch (Exception e) {
-                System.err.println("e=" + e.getMessage());
-            }
-        }
-        refresh(CLIENT);
-    }
 
-    public void refresh(String forRefresh) {
-        if (forRefresh.equals(SERVER)) {
-        setCurrentDirectoryServer(currentDirectoryServer);
-        } else if (forRefresh.equals(CLIENT))
-            setCurrentDirectory(System.getProperty("user.home"));
-    }
+
 }

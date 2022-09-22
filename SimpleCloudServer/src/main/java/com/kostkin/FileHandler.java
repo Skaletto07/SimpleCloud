@@ -3,23 +3,22 @@ package com.kostkin;
 import java.io.*;
 import java.net.Socket;
 
+import static com.kostkin.Command.*;
+import static com.kostkin.FileUtils.readFileFromStream;
+
 public class FileHandler implements Runnable {
 
     private static final String SERVER_DIR = "server_files";
-
-    private static final String SEND_FILE_COMMAND = "file";
-    private static final String RECEIVE_FILE_COMMAND = "file_request";
 
     private static final Integer BATCH_SIZE = 256;
 
     private final Socket socket;
 
-    private final DataOutputStream dos;
-
     private final DataInputStream dis;
 
-    private byte[] batch;
+    private final DataOutputStream dos;
 
+    private byte[] batch;
 
     public FileHandler(Socket socket) throws IOException {
         this.socket = socket;
@@ -28,9 +27,23 @@ public class FileHandler implements Runnable {
         batch = new byte[BATCH_SIZE];
         File file = new File(SERVER_DIR);
         if (!file.exists()) {
-           file.mkdir();
+            file.mkdir();
         }
+        sendServerFiles();
         System.out.println("Client accepted...");
+    }
+
+    private void sendServerFiles() throws IOException {
+        File dir = new File(SERVER_DIR);
+        String[] files = dir.list();
+        assert files != null;
+        dos.writeUTF(GET_FILES_LIST_COMMAND.getSimpleName());
+        dos.writeInt(files.length);
+        for (String file : files) {
+            dos.writeUTF(file);
+        }
+        dos.flush();
+        System.out.println(files.length + " files sent to client");
     }
 
     @Override
@@ -39,24 +52,30 @@ public class FileHandler implements Runnable {
             System.out.println("Start listening...");
             while (true) {
                 String command = dis.readUTF();
-                if (command.equals(SEND_FILE_COMMAND)) {
+                System.out.println("Received command: " + command);
+                if (command.equals(SEND_FILE_COMMAND.getSimpleName())) {
+                    readFileFromStream(dis, SERVER_DIR);
+                    sendServerFiles();
+                } else if (GET_FILE_COMMAND.getSimpleName().equals(command)) {
                     String fileName = dis.readUTF();
-                    long size = dis.readLong();
-                    try(FileOutputStream fos = new FileOutputStream(SERVER_DIR + "/" + fileName)) {
-                        for (int i = 0; i < (size + BATCH_SIZE - 1) / BATCH_SIZE; i++) {
-                            int read = dis.read(batch);
-                            fos.write(batch, 0, read);
+                    String filePath = SERVER_DIR + "/" + fileName;
+                    File file = new File(filePath);
+                    if (file.isFile()) {
+                        try {
+                            System.out.println("File: " + fileName + " sent to server");
+                            dos.writeUTF(SEND_FILE_COMMAND.getSimpleName());
+                            dos.writeUTF(fileName);
+                            dos.writeLong(file.length());
+                            try (FileInputStream fis = new FileInputStream(file)) {
+                                byte[] bytes = fis.readAllBytes();
+                                dos.write(bytes);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        } catch (Exception e) {
+                            System.err.println("e = " + e.getMessage());
                         }
-                    } catch (Exception ignored) {}
-                } else if (command.equals(RECEIVE_FILE_COMMAND)) {
-                    String fileNameToClient = dis.readUTF();
-                    long size = dis.readLong();
-                    try(FileOutputStream fos = new FileOutputStream(System.getProperty("user.home") + "/" + fileNameToClient)) {
-                        for (int i = 0; i < (size + BATCH_SIZE - 1) / BATCH_SIZE; i++) {
-                            int read = dis.read(batch);
-                            fos.write(batch, 0, read);
-                        }
-                    } catch (Exception ignored) {}
+                    }
                 } else {
                     System.out.println("Unknown command received: " + command);
                 }
@@ -64,6 +83,5 @@ public class FileHandler implements Runnable {
         } catch (Exception ignored) {
             System.out.println("Client disconnected...");
         }
-
     }
 }
