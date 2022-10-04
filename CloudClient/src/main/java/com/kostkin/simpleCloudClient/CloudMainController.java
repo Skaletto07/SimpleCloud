@@ -12,7 +12,6 @@ import javafx.scene.control.ListView;
 import java.io.*;
 import java.net.Socket;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -132,5 +131,19 @@ public class CloudMainController implements Initializable {
     }
 
 
+    public void deleteFromClient(ActionEvent event) {
+        String fileName = clientView.getSelectionModel().getSelectedItem();
+        Path file = Path.of(currentDirectory,fileName);
+        try {
+            Files.delete(file);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Platform.runLater(()->fillView(clientView,getFiles(currentDirectory)));
+    }
 
+    public void deleteFromServer(ActionEvent event) throws IOException {
+        String fileName = serverView.getSelectionModel().getSelectedItem();
+        network.outputStream().writeObject(new DeleteMessage(fileName));
+    }
 }
