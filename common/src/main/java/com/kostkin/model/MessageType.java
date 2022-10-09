@@ -5,5 +5,6 @@ public enum MessageType {
     FILE_REQUEST,
     FILE,
     SERVER_PATH_REQUEST,
-    DELETE_FILE;
+    DELETE_FILE,
+    RENAME_FILE
 }

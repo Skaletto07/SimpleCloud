@@ -11,5 +11,9 @@
       <Button layoutX="506.0" layoutY="129.0" mnemonicParsing="false" onAction="#downloadFile" prefHeight="25.0" prefWidth="61.0" text="&lt;" />
       <Button layoutX="42.0" layoutY="611.0" mnemonicParsing="false" onAction="#deleteFromClient" prefHeight="25.0" prefWidth="110.0" text="Delete" />
       <Button layoutX="618.0" layoutY="611.0" mnemonicParsing="false" onAction="#deleteFromServer" prefHeight="25.0" prefWidth="110.0" text="Delete" />
+      <Button layoutX="161.0" layoutY="611.0" mnemonicParsing="false" onAction="#renameFileOnClient" prefHeight="25.0" prefWidth="110.0" text="Rename" />
+      <Button layoutX="738.0" layoutY="611.0" mnemonicParsing="false" onAction="#renameFileOnServer" prefHeight="25.0" prefWidth="110.0" text="Rename" />
+      <TextField fx:id="clientNewFileName" layoutX="279.0" layoutY="611.0" />
+      <TextField fx:id="serverNewFileName" layoutX="857.0" layoutY="611.0" />
    </children>
 </AnchorPane>
