@@ -4,5 +4,6 @@ public enum MessageType {
     LIST,
     FILE_REQUEST,
     FILE,
-    SERVER_PATH_REQUEST
+    SERVER_PATH_REQUEST,
+    DELETE_FILE;
 }

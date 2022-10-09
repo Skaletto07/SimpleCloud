@@ -3,14 +3,13 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="650.0"
-            prefWidth="1070.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.kostkin.simpleCloudClient.CloudMainController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="650.0" prefWidth="1070.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.kostkin.simpleCloudClient.CloudMainController">
    <children>
       <ListView fx:id="clientView" layoutX="23.0" layoutY="44.0" prefHeight="560.0" prefWidth="450.0" />
       <ListView fx:id="serverView" layoutX="591.0" layoutY="44.0" prefHeight="560.0" prefWidth="450.0" />
-      <Button onAction="#sendToServer" layoutX="506.0" layoutY="85.0" mnemonicParsing="false" prefHeight="24.0" prefWidth="61.0" text="&gt;" />
-      <Button onAction="#downloadFile" layoutX="506.0" layoutY="129.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="61.0" text="&lt;" />
+      <Button layoutX="506.0" layoutY="85.0" mnemonicParsing="false" onAction="#sendToServer" prefHeight="24.0" prefWidth="61.0" text="&gt;" />
+      <Button layoutX="506.0" layoutY="129.0" mnemonicParsing="false" onAction="#downloadFile" prefHeight="25.0" prefWidth="61.0" text="&lt;" />
+      <Button layoutX="42.0" layoutY="611.0" mnemonicParsing="false" onAction="#deleteFromClient" prefHeight="25.0" prefWidth="110.0" text="Delete" />
+      <Button layoutX="618.0" layoutY="611.0" mnemonicParsing="false" onAction="#deleteFromServer" prefHeight="25.0" prefWidth="110.0" text="Delete" />
    </children>
 </AnchorPane>
