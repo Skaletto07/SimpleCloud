@@ -6,5 +6,9 @@ public enum MessageType {
     FILE,
     SERVER_PATH_REQUEST,
     DELETE_FILE,
-    RENAME_FILE
+    RENAME_FILE,
+    AUTH_OK,
+    AUTH_WRONG,
+    AUTH_MESSAGE,
+    SING_IN
 }

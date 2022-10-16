@@ -15,5 +15,12 @@
       <Button layoutX="738.0" layoutY="611.0" mnemonicParsing="false" onAction="#renameFileOnServer" prefHeight="25.0" prefWidth="110.0" text="Rename" />
       <TextField fx:id="clientNewFileName" layoutX="279.0" layoutY="611.0" />
       <TextField fx:id="serverNewFileName" layoutX="857.0" layoutY="611.0" />
+      <AnchorPane fx:id="signIn" prefHeight="650.0" prefWidth="1070.0" visible="true">
+         <children>
+            <TextField fx:id="login" layoutX="39.0" layoutY="14.0" promptText="Login" />
+            <PasswordField fx:id="password" layoutX="212.0" layoutY="14.0" promptText="Passoword" />
+            <Button layoutX="376.0" layoutY="14.0" mnemonicParsing="false" onAction="#AuthButton" prefHeight="25.0" prefWidth="86.0" text="Sign in" />
+         </children>
+      </AnchorPane>
    </children>
 </AnchorPane>
