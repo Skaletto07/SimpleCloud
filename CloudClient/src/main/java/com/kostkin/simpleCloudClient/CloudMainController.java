@@ -8,6 +8,7 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 
 import java.io.*;
 import java.net.Socket;
@@ -20,8 +21,10 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 public class CloudMainController implements Initializable {
-    public ListView<String> clientView  ;
+    public ListView<String> clientView;
     public ListView<String> serverView;
+    public TextField clientNewFileName;
+    public TextField serverNewFileName;
 
     private String currentDirectory;
 
@@ -133,17 +136,35 @@ public class CloudMainController implements Initializable {
 
     public void deleteFromClient(ActionEvent event) {
         String fileName = clientView.getSelectionModel().getSelectedItem();
-        Path file = Path.of(currentDirectory,fileName);
+        Path file = Path.of(currentDirectory, fileName);
         try {
             Files.delete(file);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Platform.runLater(()->fillView(clientView,getFiles(currentDirectory)));
+        Platform.runLater(() -> fillView(clientView, getFiles(currentDirectory)));
     }
 
     public void deleteFromServer(ActionEvent event) throws IOException {
         String fileName = serverView.getSelectionModel().getSelectedItem();
         network.outputStream().writeObject(new DeleteMessage(fileName));
+    }
+
+    public void renameFileOnClient(ActionEvent event) throws IOException {
+        String fileName = clientView.getSelectionModel().getSelectedItem();
+        Path source = Path.of(currentDirectory, fileName);
+        String newFileNameText = clientNewFileName.getText().trim();
+        if (!newFileNameText.isEmpty()) {
+        Files.move(source, source.resolveSibling(newFileNameText));
+        Platform.runLater(() -> fillView(clientView, getFiles(currentDirectory)));
+        }
+    }
+
+    public void renameFileOnServer(ActionEvent event) throws IOException {
+        String oldFileName = serverView.getSelectionModel().getSelectedItem();
+        String newFileName = serverNewFileName.getText().trim();
+        if (!newFileName.isEmpty()) {
+            network.outputStream().writeObject(new RenameFile(oldFileName, newFileName));
+        }
     }
 }
