@@ -10,12 +10,12 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,9 +39,6 @@ public class CloudMainController implements Initializable {
     private boolean needReadMessages = true;
 
     private DaemonThreadFactory factory;
-    private String loginText;
-
-    private boolean flag = true;
 
     public void downloadFile(ActionEvent actionEvent) throws IOException {
         String fileName = serverView.getSelectionModel().getSelectedItem();
@@ -80,21 +77,20 @@ public class CloudMainController implements Initializable {
         Path file = Path.of(currentDirectory).resolve(fileName);
         network.outputStream().writeObject(new FileMessage(file));
     }
+
     private void readMessages() {
         try {
             while (needReadMessages) {
-//                if (!flag) {
-                    CloudMessage message = (CloudMessage) network.inputStream().readObject();
-                    if (message instanceof FileMessage fileMessage) {
-                        Files.write(Path.of(currentDirectory).resolve(fileMessage.getFileName()), fileMessage.getBytes());
-                        Platform.runLater(() -> fillView(clientView, getFiles(currentDirectory)));
-                    } else if (message instanceof ListMessage listMessage) {
-                        Platform.runLater(() -> fillView(serverView, listMessage.getFiles()));
-                    } else if (message instanceof SignIn) {
-                        waitAuth();
-                    }
+                CloudMessage message = (CloudMessage) network.inputStream().readObject();
+                if (message instanceof FileMessage fileMessage) {
+                    Files.write(Path.of(currentDirectory).resolve(fileMessage.getFileName()), fileMessage.getBytes());
+                    Platform.runLater(() -> fillView(clientView, getFiles(currentDirectory)));
+                } else if (message instanceof ListMessage listMessage) {
+                    Platform.runLater(() -> fillView(serverView, listMessage.getFiles()));
+                } else if (message instanceof SignIn) {
+                    waitAuth();
+                }
                 selectFolder();
-//                } else waitAuth();
             }
         } catch (Exception e) {
             System.err.println("Server off");
@@ -166,8 +162,8 @@ public class CloudMainController implements Initializable {
         Path source = Path.of(currentDirectory, fileName);
         String newFileNameText = clientNewFileName.getText().trim();
         if (!newFileNameText.isEmpty()) {
-        Files.move(source, source.resolveSibling(newFileNameText));
-        Platform.runLater(() -> fillView(clientView, getFiles(currentDirectory)));
+            Files.move(source, source.resolveSibling(newFileNameText));
+            Platform.runLater(() -> fillView(clientView, getFiles(currentDirectory)));
         }
     }
 
@@ -184,6 +180,7 @@ public class CloudMainController implements Initializable {
             network.outputStream().writeObject(new AuthMessage(login.getText(), password.getText()));
         }
     }
+
     public void waitAuth() {
         while (true) {
             try {
@@ -192,8 +189,8 @@ public class CloudMainController implements Initializable {
                     signIn.setVisible(false);
                     Platform.runLater(() -> fillView(serverView, listMessage.getFiles()));
                     break;
-                } else if (message instanceof AuthWrong authWrong) {
-                    Platform.runLater(()-> showError("Неверные логин или пароль"));
+                } else if (message instanceof AuthWrong) {
+                    Platform.runLater(() -> showError("Неверные логин или пароль"));
                 }
             } catch (IOException e) {
                 e.printStackTrace();

@@ -14,6 +14,7 @@ public class FileHandler extends SimpleChannelInboundHandler<CloudMessage> {
 
     private final AuthService authService;
     private Path serverDir;
+
     public FileHandler(AuthService authService) {
         this.authService = authService;
     }
@@ -22,7 +23,6 @@ public class FileHandler extends SimpleChannelInboundHandler<CloudMessage> {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         serverDir = Path.of("server_files");
         ctx.writeAndFlush(new SignIn());
-//        ctx.writeAndFlush(new ListMessage(serverDir));
     }
 
     @Override
@@ -36,12 +36,12 @@ public class FileHandler extends SimpleChannelInboundHandler<CloudMessage> {
         } else if (cloudMessage instanceof ServerPathRequest serverPathRequest) {
             Path normalize = Path.of(serverDir.toString(), serverPathRequest.getFolder()).normalize();
             if (Files.isDirectory(normalize)) {
-            ctx.writeAndFlush(new ListMessage(serverDir.resolve(serverPathRequest.getFolder())));
+                ctx.writeAndFlush(new ListMessage(serverDir.resolve(serverPathRequest.getFolder())));
             }
             serverDir = normalize;
         } else if (cloudMessage instanceof DeleteMessage message) {
             String fileName = message.getFileName();
-            Path file = Path.of(serverDir.toString(),fileName);
+            Path file = Path.of(serverDir.toString(), fileName);
             Files.delete(file);
             ctx.writeAndFlush(new ListMessage(serverDir));
         } else if (cloudMessage instanceof RenameFile renameFile) {
@@ -51,8 +51,13 @@ public class FileHandler extends SimpleChannelInboundHandler<CloudMessage> {
             Files.move(source, source.resolveSibling(newFileName));
             ctx.writeAndFlush(new ListMessage(serverDir));
         } else if (cloudMessage instanceof AuthMessage authMessage) {
-            if (authService.getNickByLoginAndPassword(authMessage.login(),authMessage.password())) {
-                ctx.writeAndFlush(new ListMessage(serverDir));
+            if (authService.getNickByLoginAndPassword(authMessage.login(), authMessage.password())) {
+                Path path = Path.of(serverDir.toString(), authMessage.login());
+                if (!Files.exists(path)) {
+                    Files.createDirectory(path);
+                }
+                System.out.println(path);
+                ctx.writeAndFlush(new ListMessage(path));
             } else ctx.writeAndFlush(new AuthWrong());
 
         }
