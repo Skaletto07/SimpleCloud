@@ -7,10 +7,11 @@ import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.file.Files;
@@ -25,6 +26,9 @@ public class CloudMainController implements Initializable {
     public ListView<String> serverView;
     public TextField clientNewFileName;
     public TextField serverNewFileName;
+    public AnchorPane signIn;
+    public TextField login;
+    public PasswordField password;
 
     private String currentDirectory;
 
@@ -70,7 +74,8 @@ public class CloudMainController implements Initializable {
 
     public void sendToServer(ActionEvent actionEvent) throws IOException {
         String fileName = clientView.getSelectionModel().getSelectedItem();
-        network.outputStream().writeObject(new FileMessage(Path.of(currentDirectory).resolve(fileName)));
+        Path file = Path.of(currentDirectory).resolve(fileName);
+        network.outputStream().writeObject(new FileMessage(file));
     }
 
     private void readMessages() {
@@ -82,6 +87,8 @@ public class CloudMainController implements Initializable {
                     Platform.runLater(() -> fillView(clientView, getFiles(currentDirectory)));
                 } else if (message instanceof ListMessage listMessage) {
                     Platform.runLater(() -> fillView(serverView, listMessage.getFiles()));
+                } else if (message instanceof SignIn) {
+                    waitAuth();
                 }
                 selectFolder();
             }
@@ -155,8 +162,8 @@ public class CloudMainController implements Initializable {
         Path source = Path.of(currentDirectory, fileName);
         String newFileNameText = clientNewFileName.getText().trim();
         if (!newFileNameText.isEmpty()) {
-        Files.move(source, source.resolveSibling(newFileNameText));
-        Platform.runLater(() -> fillView(clientView, getFiles(currentDirectory)));
+            Files.move(source, source.resolveSibling(newFileNameText));
+            Platform.runLater(() -> fillView(clientView, getFiles(currentDirectory)));
         }
     }
 
@@ -166,5 +173,35 @@ public class CloudMainController implements Initializable {
         if (!newFileName.isEmpty()) {
             network.outputStream().writeObject(new RenameFile(oldFileName, newFileName));
         }
+    }
+
+    public void AuthButton(ActionEvent event) throws IOException {
+        if (!login.getText().isEmpty() && !password.getText().isEmpty()) {
+            network.outputStream().writeObject(new AuthMessage(login.getText(), password.getText()));
+        }
+    }
+
+    public void waitAuth() {
+        while (true) {
+            try {
+                CloudMessage message = (CloudMessage) network.inputStream().readObject();
+                if (message instanceof ListMessage listMessage) {
+                    signIn.setVisible(false);
+                    Platform.runLater(() -> fillView(serverView, listMessage.getFiles()));
+                    break;
+                } else if (message instanceof AuthWrong) {
+                    Platform.runLater(() -> showError("Неверные логин или пароль"));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    public static void showError(String error) {
+        final Alert alert = new Alert(Alert.AlertType.ERROR, error, new ButtonType("OK", ButtonBar.ButtonData.OK_DONE));
+        alert.setTitle("Ошибка!");
+        alert.showAndWait();
     }
 }

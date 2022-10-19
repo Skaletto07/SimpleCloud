@@ -20,6 +20,8 @@ public class FileServer {
         EventLoopGroup auth = new NioEventLoopGroup(1);
         EventLoopGroup worker = new NioEventLoopGroup();
         try {
+            AuthService authService = new InMemoryAuthService();
+            authService.start();
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(auth, worker)
                     .channel(NioServerSocketChannel.class)
@@ -29,7 +31,7 @@ public class FileServer {
                             socketChannel.pipeline().addLast(
                                     new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
-                                    new FileHandler()
+                                    new FileHandler(authService)
                             );
                         }
                     });
